@@ -1,0 +1,4 @@
+#!/bin/bash
+# MiniOS Openbox autostart — no taskbar, no panel, just the shell bar.
+xsetroot -solid "#1a1a1a" &
+python3 /usr/local/bin/minios-shell &

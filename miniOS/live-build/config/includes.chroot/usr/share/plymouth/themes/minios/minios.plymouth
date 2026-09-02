@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=MiniOS
+Description=MiniOS boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/minios
+ScriptFile=/usr/share/plymouth/themes/minios/minios.script

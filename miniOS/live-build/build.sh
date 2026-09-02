@@ -1,26 +1,26 @@
 #!/bin/bash
-# Build the MiniOS ISO using Debian live-build.
-# Run this on a Debian/Ubuntu machine (or VM) with root, ~20GB free disk,
-# and a real internet connection (it downloads the full package set).
-#
-#   sudo apt install live-build
-#   sudo ./build.sh
-#
 set -e
-
 if [ "$EUID" -ne 0 ]; then
   echo "Run as root: sudo ./build.sh"
   exit 1
 fi
-
 cd "$(dirname "$0")"
+
+echo "[0/4] Making sure the Debian keyring is present..."
+apt-get update -qq
+apt-get install -y debian-archive-keyring
 
 echo "[1/4] Configuring live-build..."
 lb config \
   --distribution bookworm \
   --architecture amd64 \
   --debian-installer live \
-  --archive-areas "main contrib non-free non-free-firmware"
+  --archive-areas "main contrib non-free non-free-firmware" \
+  --mirror-bootstrap "http://deb.debian.org/debian/" \
+  --mirror-chroot "http://deb.debian.org/debian/" \
+  --mirror-chroot-security "http://security.debian.org/debian-security/" \
+  --mirror-binary "http://deb.debian.org/debian/" \
+  --mirror-binary-security "http://security.debian.org/debian-security/"
 
 echo "[2/4] Copying MiniOS apps into the chroot overlay..."
 APP_BIN=config/includes.chroot/usr/local/bin
@@ -53,9 +53,6 @@ SKEL=config/includes.chroot/etc/skel
 mkdir -p "$SKEL/.config/openbox"
 cp ../desktop/openbox/autostart "$SKEL/.config/openbox/autostart"
 chmod +x "$SKEL/.config/openbox/autostart"
-
-# (sudoers rule for wg-quick, Plymouth activation, and lightdm setup are
-# handled by config/hooks/live/0100-minios-setup.hook.chroot)
 
 echo "[3/4] Building the ISO (this takes a while)..."
 lb build
