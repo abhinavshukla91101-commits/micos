@@ -1,0 +1,27 @@
+#!/bin/bash
+set -e
+# Activate the MiniOS Plymouth theme
+update-alternatives --install /usr/share/plymouth/themes/default.plymouth \
+  default.plymouth /usr/share/plymouth/themes/minios/minios.plymouth 100
+update-alternatives --set default.plymouth /usr/share/plymouth/themes/minios/minios.plymouth
+update-initramfs -u
+
+# Make lightdm the display manager, default session = openbox
+echo "/usr/bin/openbox-session" > /usr/share/xsessions/minios.desktop 2>/dev/null || true
+cat > /usr/share/xsessions/minios.desktop << 'SESSION'
+[Desktop Entry]
+Name=MiniOS
+Comment=MiniOS Openbox session
+Exec=openbox-session
+Type=Application
+SESSION
+
+echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
+dpkg-reconfigure -f noninteractive lightdm || true
+
+# Narrow sudoers rule for the VPN toggle (wg-quick only)
+mkdir -p /etc/sudoers.d
+cat > /etc/sudoers.d/minios-vpn << 'SUDOERS'
+%sudo ALL=(root) NOPASSWD: /usr/bin/wg-quick
+SUDOERS
+chmod 0440 /etc/sudoers.d/minios-vpn

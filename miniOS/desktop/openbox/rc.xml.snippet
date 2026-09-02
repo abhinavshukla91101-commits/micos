@@ -1,0 +1,12 @@
+<!-- Merge into ~/.config/openbox/rc.xml: disable window decorations for the
+     shell bar and pin the vpn toggle window to top-right -->
+<applications>
+  <application name="minios-shell">
+    <decor>no</decor>
+    <skip_taskbar>yes</skip_taskbar>
+    <layer>above</layer>
+  </application>
+  <application title="VPN">
+    <position force="yes"><x>-320</x><y>10</y></position>
+  </application>
+</applications>
