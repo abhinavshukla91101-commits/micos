@@ -11,30 +11,32 @@ jobs:
   build-iso:
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    # Run inside a real Debian bookworm container instead of directly on
+    # the Ubuntu runner. Ubuntu's own `live-build` package is a ~2013-era
+    # fork that predates the "bookworm" codename entirely — it doesn't
+    # recognize it, falls back to Ubuntu-host defaults, and tries to
+    # install ubuntu-keyring into a Debian chroot (which fails, since
+    # that package doesn't exist there). Building inside actual Debian
+    # sidesteps the whole class of mismatch bugs at once.
+    container:
+      image: debian:bookworm
     steps:
-      - name: Free up runner disk space
-        # GitHub's runners come with ~14GB actually free out of the box —
-        # not enough for a full desktop live-build image. This strips
-        # preinstalled toolchains we don't need (Android SDK, .NET, GHC,
-        # etc.) to get back 20-30GB before we start.
+      - name: Install git (needed for checkout inside a bare container)
         run: |
-          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc \
-            /usr/local/.ghcup /usr/local/share/boost \
-            "$AGENT_TOOLSDIRECTORY" /opt/hostedtoolcache
-          sudo apt-get clean
-          df -h /
+          apt-get update
+          apt-get install -y git ca-certificates
 
       - name: Checkout MiniOS
         uses: actions/checkout@v4
 
       - name: Install live-build
         run: |
-          sudo apt-get update
-          sudo apt-get install -y live-build
+          apt-get update
+          apt-get install -y live-build debian-archive-keyring
 
       - name: Build the ISO
         working-directory: live-build
-        run: sudo ./build.sh
+        run: ./build.sh
 
       - name: Show build output
         working-directory: live-build
@@ -46,3 +48,4 @@ jobs:
           name: MiniOS-iso
           path: live-build/*.iso
           retention-days: 14
+
