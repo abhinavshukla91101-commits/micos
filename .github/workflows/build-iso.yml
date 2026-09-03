@@ -1,12 +1,10 @@
 name: Build MiniOS ISO
-
 # Manual trigger (Actions tab -> Build MiniOS ISO -> Run workflow)
 # and automatic on every push to main, so you always have a fresh ISO.
 on:
   workflow_dispatch:
   push:
     branches: [ main ]
-
 jobs:
   build-iso:
     runs-on: ubuntu-latest
@@ -20,32 +18,27 @@ jobs:
     # sidesteps the whole class of mismatch bugs at once.
     container:
       image: debian:bookworm
+      options: --privileged
     steps:
       - name: Install git (needed for checkout inside a bare container)
         run: |
           apt-get update
           apt-get install -y git ca-certificates
-
       - name: Checkout MiniOS
         uses: actions/checkout@v4
-
       - name: Install live-build
         run: |
           apt-get update
           apt-get install -y live-build debian-archive-keyring
-
       - name: Build the ISO
         working-directory: live-build
         run: ./build.sh
-
       - name: Show build output
         working-directory: live-build
         run: ls -lh *.iso
-
       - name: Upload ISO as artifact
         uses: actions/upload-artifact@v4
         with:
           name: MiniOS-iso
           path: live-build/*.iso
           retention-days: 14
-
