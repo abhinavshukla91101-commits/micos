@@ -1,4 +1,11 @@
+<p align="center">
+  <img src="desktop/plymouth/logo.png" width="120" alt="MiniOS logo">
+</p>
+
 # MiniOS
+
+See [CHANGELOG.md](CHANGELOG.md) for what's changed between versions and
+what's still known-broken in this pre-release.
 
 A minimal, real, bootable Linux distro with exactly three things on the desktop:
 **Settings**, **Browser (with WireGuard VPN toggle)**, and **Task Manager**.
