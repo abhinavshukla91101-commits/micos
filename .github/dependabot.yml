@@ -1,0 +1,12 @@
+# MiniOS doesn't have npm/pip/etc. manifests to watch — it's built from
+# apt packages (tracked in live-build/config/package-lists/) and plain
+# shell/Python scripts, neither of which Dependabot supports scanning.
+# The one real dependency surface here is the GitHub Actions workflow
+# itself (actions/checkout, actions/upload-artifact, the debian:bookworm
+# base image), so that's the only ecosystem enabled.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
