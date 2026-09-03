@@ -1,0 +1,14 @@
+# live-build generates these at build time — never commit them.
+# They're multi-gigabyte OS filesystem contents / package caches,
+# not source files.
+live-build/chroot/
+live-build/cache/
+live-build/binary/
+live-build/.build/
+live-build/*.iso
+live-build/*.log
+live-build/*.buildlog
+live-build/output/
+
+# Don't track the zip itself inside the repo
+*.zip

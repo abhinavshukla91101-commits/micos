@@ -1,0 +1,62 @@
+#!/bin/bash
+set -e
+# Activate the MiniOS Plymouth theme
+update-alternatives --install /usr/share/plymouth/themes/default.plymouth \
+  default.plymouth /usr/share/plymouth/themes/minios/minios.plymouth 100
+update-alternatives --set default.plymouth /usr/share/plymouth/themes/minios/minios.plymouth
+update-initramfs -u
+
+# Register the MiniOS (Openbox) session so it's selectable/autologin-able
+cat > /usr/share/xsessions/minios.desktop << 'SESSION'
+[Desktop Entry]
+Name=MiniOS
+Comment=MiniOS Openbox session
+Exec=openbox-session
+Type=Application
+SESSION
+
+echo "/usr/sbin/lightdm" > /etc/X11/default-display-manager
+
+# Auto-login straight into the MiniOS desktop — this is a live/demo
+# environment, not a shared machine, so skipping the login prompt is
+# the expected behavior (same as most live Linux distros: Ubuntu Live,
+# Mint Live, etc. all auto-login by default).
+mkdir -p /etc/lightdm/lightdm.conf.d
+cat > /etc/lightdm/lightdm.conf.d/50-minios-autologin.conf << 'LIGHTDM'
+[Seat:*]
+autologin-user=user
+autologin-user-timeout=0
+autologin-session=minios
+user-session=minios
+LIGHTDM
+
+# Enable the services a live desktop actually needs running at boot
+systemctl enable lightdm.service || true
+systemctl enable NetworkManager.service || true
+
+# THE FIX for "boots to a terminal instead of the desktop": enabling
+# lightdm.service alone isn't enough — the system's default boot target
+# also has to be graphical.target, or systemd boots straight to
+# multi-user.target (text console) and never starts a display manager
+# at all. Package installs sometimes set this automatically; inside a
+# live-build chroot they don't always, so it's pinned explicitly here.
+systemctl set-default graphical.target
+
+# live-config auto-creates the boot-time "user" account and — because
+# the sudo package is installed — adds it to the sudo group already.
+# This just makes sure that stays true even if live-config's defaults
+# ever change, and gives that user a normal (password-prompting) sudo,
+# not passwordless.
+mkdir -p /etc/live/config.conf.d
+cat > /etc/live/config.conf.d/999-minios-user-groups.conf << 'GROUPS'
+LIVE_USER_DEFAULT_GROUPS="audio,cdrom,dip,floppy,video,plugdev,netdev,powerdev,scanner,bluetooth,debian-tor,sudo"
+GROUPS
+
+# Narrow sudoers rule for the VPN toggle specifically (wg-quick only,
+# passwordless — separate from the user's normal password-based sudo)
+mkdir -p /etc/sudoers.d
+cat > /etc/sudoers.d/minios-vpn << 'SUDOERS'
+%sudo ALL=(root) NOPASSWD: /usr/bin/wg-quick
+SUDOERS
+chmod 0440 /etc/sudoers.d/minios-vpn
+
