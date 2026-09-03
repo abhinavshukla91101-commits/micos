@@ -28,7 +28,7 @@ plymouth-themes
 lightdm-gtk-greeter
 ufw
 power-profiles-daemon
-x-terminal-emulator
+xfce4-terminal
 xterm
 lutris
 calamares
